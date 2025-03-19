@@ -1,4 +1,6 @@
 @charset "UTF-8";
 
 // Forward all SCSS partials
+@forward './reset.scss';
 @forward './main.scss';
+@forward './gameboard.scss';
