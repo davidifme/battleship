@@ -1,14 +1,9 @@
 body {
     display: flex;
     justify-content: center;
-    align-items: center;
     min-height: 100vh;
     padding: 20px;
     font-family: 'Inter', sans-serif;
-}
-
-.game-container {
-    margin-top: 50px;
 }
 
 // Add a winner announcement style

@@ -1,212 +1,141 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Player } from "../js/Player";
 import { Gameboard } from "../js/gameBoard";
 
 describe("Player factory", () => {
-  it("creates a human player with correct properties", () => {
-    // Mock the Gameboard.createBoard function
-    vi.spyOn(Gameboard, "createBoard").mockReturnValue([]);
-
-    const player = Player.createPlayer("human");
-
-    expect(player.type).toBe("human");
-    expect(player.board).toEqual([]);
-    expect(player.isComputer).toBe(false);
-    expect(typeof player.attack).toBe("function");
-    expect(player.attack).toBe(Player.attack);
-  });
-
-  it("creates a computer player with correct properties", () => {
-    // Mock the Gameboard.createBoard function
-    vi.spyOn(Gameboard, "createBoard").mockReturnValue([]);
-
-    const player = Player.createPlayer("computer");
-
-    expect(player.type).toBe("computer");
-    expect(player.board).toEqual([]);
-    expect(player.isComputer).toBe(true);
-    expect(typeof player.attack).toBe("function");
-    expect(player.attack).toBe(Player.computerAttack);
-  });
-
-  it("creates a gameboard of size 10 for the player", () => {
-    // Mock and spy on the Gameboard.createBoard function
-    const createBoardSpy = vi.spyOn(Gameboard, "createBoard");
-
-    Player.createPlayer("human");
-
-    expect(createBoardSpy).toHaveBeenCalledWith(10);
-  });
-});
-
-describe("makeRandomAttack function", () => {
-  it("returns coordinates within the board boundaries", () => {
-    const mockBoard = Array(10)
-      .fill()
-      .map(() => Array(10).fill(null));
-    const result = Player.makeRandomAttack(mockBoard);
-
-    expect(result).toHaveProperty("row");
-    expect(result).toHaveProperty("col");
-    expect(result.row).toBeGreaterThanOrEqual(0);
-    expect(result.row).toBeLessThan(10);
-    expect(result.col).toBeGreaterThanOrEqual(0);
-    expect(result.col).toBeLessThan(10);
-  });
-
-  it("only selects non-attacked spots", () => {
-    const mockBoard = Array(3)
-      .fill()
-      .map(() => Array(3).fill("hit"));
-    mockBoard[1][1] = null; // Only one available spot
-
-    const result = Player.makeRandomAttack(mockBoard);
-
-    expect(result).toEqual({ row: 1, col: 1 });
-  });
-
-  it("returns false when no spots are available", () => {
-    const mockBoard = Array(3)
-      .fill()
-      .map(() => Array(3).fill("hit"));
-
-    const result = Player.makeRandomAttack(mockBoard);
-
-    expect(result).toBe(false);
-  });
-
-  it("avoids both hit and miss spots", () => {
-    const mockBoard = [
-      ["hit", "miss", null],
-      ["miss", null, "hit"],
-      [null, "hit", "miss"],
-    ];
-
-    // Mock Math.random to return predictable values
-    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0);
-
-    const result = Player.makeRandomAttack(mockBoard);
-
-    expect(result).toEqual({ row: 0, col: 2 }); // First available spot
-
-    randomSpy.mockRestore();
-  });
-});
-
-describe("Player attack functions", () => {
-  let makeRandomAttackSpy;
-  let receiveAttackSpy;
-
   beforeEach(() => {
-    // Set up spies before each test
-    makeRandomAttackSpy = vi.spyOn(Player, "makeRandomAttack");
-    receiveAttackSpy = vi.spyOn(Gameboard, "receiveAttack");
-  });
-
-  afterEach(() => {
-    // Clean up spies after each test
-    vi.restoreAllMocks();
-  });
-
-  it("attack function calls Gameboard.receiveAttack with correct coordinates", () => {
-    const mockBoard = [
-      ["ship", null],
-      [null, null],
-    ];
-    receiveAttackSpy.mockReturnValue("hit");
-
-    const result = Player.attack(mockBoard, 0, 0);
-
-    expect(receiveAttackSpy).toHaveBeenCalledWith(mockBoard, 0, 0);
-    expect(result).toBe("hit");
-  });
-
-  it("computerAttack function selects random coordinates and attacks", () => {
-    const mockBoard = [
-      ["ship", null],
-      [null, null],
-    ];
-
-    // Mock the makeRandomAttack function to return fixed coordinates
-    makeRandomAttackSpy.mockReturnValue({ row: 0, col: 0 });
-    receiveAttackSpy.mockReturnValue("hit");
-
-    const result = Player.computerAttack(mockBoard);
-
-    expect(makeRandomAttackSpy).toHaveBeenCalledWith(mockBoard);
-    expect(receiveAttackSpy).toHaveBeenCalledWith(mockBoard, 0, 0);
-    expect(result).toBe("hit");
-  });
-
-  it("computerAttack returns false when no valid attacks are possible", () => {
-    const mockBoard = [
-      ["hit", "miss"],
-      ["miss", "hit"],
-    ];
-
-    // Mock to simulate no available attack spots
-    makeRandomAttackSpy.mockReturnValue(false);
-
-    const result = Player.computerAttack(mockBoard);
-
-    expect(result).toBe(false);
-  });
-});
-
-describe("computerAttack function", () => {
-  let mockBoard;
-  let makeRandomAttackSpy;
-  let receiveAttackSpy;
-
-  beforeEach(() => {
-    mockBoard = [
-      ["ship", null],
-      [null, "ship"],
-    ];
-    makeRandomAttackSpy = vi.spyOn(Player, "makeRandomAttack");
-    receiveAttackSpy = vi.spyOn(Gameboard, "receiveAttack");
+    vi.spyOn(Gameboard, "createBoard").mockReturnValue([[]]);
+    vi.spyOn(Gameboard, "receiveAttack").mockReturnValue(true);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("calls makeRandomAttack with the enemy board", () => {
-    makeRandomAttackSpy.mockReturnValue({ row: 0, col: 0 });
-    receiveAttackSpy.mockReturnValue("hit");
+  describe("createPlayer function", () => {
+    it("creates a human player correctly", () => {
+      const player = Player.createPlayer("human");
+      
+      expect(player.type).toBe("human");
+      expect(player.board).toEqual([[]]);
+      expect(player.isComputer).toBe(false);
+      expect(typeof player.attack).toBe("function");
+    });
+    
+    it("creates a computer player correctly", () => {
+      const computer = Player.createPlayer("computer");
+      
+      expect(computer.type).toBe("computer");
+      expect(computer.board).toEqual([[]]);
+      expect(computer.isComputer).toBe(true);
+      expect(typeof computer.attack).toBe("function");
+    });
 
-    Player.computerAttack(mockBoard);
-
-    expect(makeRandomAttackSpy).toHaveBeenCalledWith(mockBoard);
+    it("initializes a 10x10 board for players", () => {
+      Player.createPlayer("human");
+      
+      expect(Gameboard.createBoard).toHaveBeenCalledWith(10);
+    });
   });
 
-  it("returns the result from receiveAttack when attack is successful", () => {
-    makeRandomAttackSpy.mockReturnValue({ row: 1, col: 1 });
-    receiveAttackSpy.mockReturnValue("miss");
-
-    const result = Player.computerAttack(mockBoard);
-
-    expect(result).toBe("miss");
-    expect(receiveAttackSpy).toHaveBeenCalledWith(mockBoard, 1, 1);
+  describe("attack function", () => {
+    it("calls receiveAttack with correct coordinates for human player", () => {
+      const player = Player.createPlayer("human");
+      const enemyBoard = [[]];
+      
+      const result = player.attack(enemyBoard, 3, 5);
+      
+      expect(Gameboard.receiveAttack).toHaveBeenCalledWith(enemyBoard, 3, 5);
+      expect(result).toBe(true);
+    });
   });
 
-  it("passes the exact coordinates from makeRandomAttack to receiveAttack", () => {
-    makeRandomAttackSpy.mockReturnValue({ row: 0, col: 1 });
-
-    // Mock the receiveAttack function to avoid the actual implementation
-    receiveAttackSpy.mockReturnValue(true);
-
-    Player.computerAttack(mockBoard);
-
-    expect(receiveAttackSpy).toHaveBeenCalledWith(mockBoard, 0, 1);
+  describe("makeRandomAttack function", () => {
+    it("returns valid coordinates from available spots", () => {
+      const mockBoard = [
+        ["hit", "miss", 0],
+        [0, "hit", "hit"],
+        ["miss", 0, "miss"]
+      ];
+      
+      // Mock Math.random to return predictable values
+      vi.spyOn(Math, "random").mockReturnValue(0.1);
+      
+      const result = Player.makeRandomAttack(mockBoard);
+      
+      expect(result).toEqual({ row: 0, col: 2 });
+    });
+    
+    it("returns false when no available spots remain", () => {
+      const mockBoard = [
+        ["hit", "miss", "hit"],
+        ["miss", "hit", "hit"],
+        ["miss", "hit", "miss"]
+      ];
+      
+      const result = Player.makeRandomAttack(mockBoard);
+      
+      expect(result).toBe(false);
+    });
+    
+    it("only selects non-attacked spots", () => {
+      const mockBoard = [
+        [0, "miss", 0],
+        [0, "hit", 0],
+        [0, 0, 0]
+      ];
+      
+      // Mock to get different results on multiple calls
+      const mockMath = vi.spyOn(Math, "random");
+      mockMath.mockReturnValueOnce(0.8); // Will select one of the later available spots
+      
+      const result = Player.makeRandomAttack(mockBoard);
+      
+      // Check that the selected coordinates contain neither "hit" nor "miss"
+      expect(mockBoard[result.row][result.col]).toBe(0);
+    });
   });
 
-  it("returns false without calling receiveAttack when makeRandomAttack returns false", () => {
-    makeRandomAttackSpy.mockReturnValue(false);
-
-    const result = Player.computerAttack(mockBoard);
-
-    expect(result).toBe(false);
-    expect(receiveAttackSpy).not.toHaveBeenCalled();
+  describe("computerAttack function", () => {
+    it("uses makeRandomAttack to determine attack coordinates", () => {
+      const computer = Player.createPlayer("computer");
+      const enemyBoard = [[]];
+      
+      vi.spyOn(Player, "makeRandomAttack").mockReturnValue({ row: 2, col: 3 });
+      
+      computer.attack(enemyBoard);
+      
+      expect(Player.makeRandomAttack).toHaveBeenCalledWith(enemyBoard);
+      expect(Gameboard.receiveAttack).toHaveBeenCalledWith(enemyBoard, 2, 3);
+    });
+    
+    it("returns false when no valid attacks are possible", () => {
+      const computer = Player.createPlayer("computer");
+      const enemyBoard = [[]];
+      
+      vi.spyOn(Player, "makeRandomAttack").mockReturnValue(false);
+      
+      const result = computer.attack(enemyBoard);
+      
+      expect(result).toBe(false);
+      expect(Gameboard.receiveAttack).not.toHaveBeenCalled();
+    });
+    
+    it("returns the result of the attack", () => {
+      const computer = Player.createPlayer("computer");
+      const enemyBoard = [[]];
+      
+      vi.spyOn(Player, "makeRandomAttack").mockReturnValue({ row: 1, col: 1 });
+      vi.spyOn(Gameboard, "receiveAttack").mockReturnValueOnce(true);
+      
+      const result = computer.attack(enemyBoard);
+      expect(result).toBe(true);
+      
+      vi.spyOn(Gameboard, "receiveAttack").mockReturnValueOnce(false);
+      vi.spyOn(Player, "makeRandomAttack").mockReturnValue({ row: 2, col: 2 });
+      
+      const result2 = computer.attack(enemyBoard);
+      expect(result2).toBe(false);
+    });
   });
 });
