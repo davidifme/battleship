@@ -1,8 +1,7 @@
-#gameboard {
+.gameboard {
     display: grid;
     grid-template-columns: 50px 1fr;
-    grid-template-rows: 50px 50px 1fr;
-
+    grid-template-rows: 50px 1fr;
     width: fit-content;
 }
 
@@ -15,6 +14,9 @@
 }
 
 .grid-container {
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+
     display: grid;
 }
 
@@ -86,11 +88,4 @@
         margin-bottom: 15px;
         font-size: 1.5rem;
     }
-}
-
-.gameboard {
-    display: grid;
-    grid-template-columns: 50px 1fr;
-    grid-template-rows: 50px 50px 1fr;
-    width: fit-content;
 }

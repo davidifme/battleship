@@ -6,12 +6,12 @@ import { UserInterface } from "./UserInterface";
 export const Game = (function () {
 
   let player, computer, gameState, currentTurn;
-  const SHIP_SIZES = [5, 4, 3, 3, 2];
+  const SHIP_SIZES = [5, 4, 3, 3, 2, 1, 1];
 
   function init() {
     player = Player.createPlayer("human");
     computer = Player.createPlayer("computer");
-    gameState = "setup"; // setup, playing, gameOver
+    gameState = "setup"; // start in setup mode
     currentTurn = "player";
     
     // Place computer ships randomly
@@ -23,10 +23,10 @@ export const Game = (function () {
     // Set up event listeners
     setupEventListeners();
     
-    // Change game state to playing
-    gameState = "playing";
+    // Set buttons
+    setupButtons();
     
-    // Initialize UI
+    // Initialize UI (but don't change game state yet)
     updateUI();
   }
 
@@ -69,13 +69,19 @@ export const Game = (function () {
   }
 
   function handleCellClick(event) {
-    if (gameState !== "playing" || currentTurn !== "player") return;
-    
     const cell = event.target;
     if (!cell.classList.contains("grid-cell")) return;
     
     const row = parseInt(cell.dataset.row);
     const col = parseInt(cell.dataset.col);
+    
+    // If in setup mode, start the game AND process the attack
+    if (gameState === "setup") {
+      startBattle();
+      // Don't return here, continue to process the attack
+    }
+    
+    if (gameState !== "playing" || currentTurn !== "player") return;
     
     // Player attacks computer's board
     const attackResult = player.attack(computer.board, row, col);
@@ -162,9 +168,69 @@ export const Game = (function () {
     return true;
   }
 
+  function startBattle() {
+    if (gameState !== "setup") return;
+    
+    gameState = "playing";
+    currentTurn = "player";
+    
+    // Maybe add some visual indication that game has started
+    updateUI();
+  }
+
+  function setupRandomButton() {
+    const randomButton = document.querySelector('button.random');
+    if (!randomButton) return;
+    
+    randomButton.addEventListener('click', () => {
+      // Only allow randomization during setup or when game is over
+      if (gameState !== 'setup' && gameState !== 'gameOver') return;
+      
+      // If game was over, reset game state to setup
+      if (gameState === 'gameOver') {
+        gameState = 'setup';
+      }
+      
+      // Clear the player's board
+      player.board = Gameboard.createBoard(10);
+      
+      // Place ships randomly again
+      placePlayerShips();
+      
+      // Update the UI to show the new ship placements
+      updateUI();
+    });
+  }
+
+  function setupStopButton() {
+    const stopButton = document.querySelector('button.stop');
+    if (!stopButton) return;
+    
+    stopButton.addEventListener('click', () => {
+      // Reset the game entirely
+      player = Player.createPlayer("human");
+      computer = Player.createPlayer("computer");
+      gameState = "setup";
+      currentTurn = "player";
+      
+      // Place ships for both players
+      placeComputerShips();
+      placePlayerShips();
+      
+      // Update the UI to show the new game state
+      updateUI();
+    });
+  }
+
+  function setupButtons() {
+    setupRandomButton();
+    setupStopButton();
+  }
+
   return {
     init,
     startGame,
+    startBattle,
     handleCellClick,
     getCurrentState: () => ({
       gameState,
@@ -172,6 +238,9 @@ export const Game = (function () {
       playerBoard: player?.board,
       computerBoard: computer?.board
     }),
-    getShipSizes: () => SHIP_SIZES
+    getShipSizes: () => SHIP_SIZES,
+    setupRandomButton,
+    setupStopButton,
+    setupButtons
   };
 })();
