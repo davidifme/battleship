@@ -93,17 +93,25 @@ export const Gameboard = (function () {
       return false;
     }
 
-    // Check if the ship overlaps with another ship
+    // Check if the ship and its surrounding area overlaps with another ship
     if (isHorizontal) {
-      for (let i = 0; i < shipLength; i++) {
-        if (board[row][col + i] !== 0) {
-          return false;
+      // Check one row above, the row itself, and one row below
+      for (let r = Math.max(0, row - 1); r <= Math.min(boardSize - 1, row + 1); r++) {
+        // Check one column before, the columns of the ship, and one column after
+        for (let c = Math.max(0, col - 1); c <= Math.min(boardSize - 1, col + shipLength); c++) {
+          if (board[r][c] !== 0) {
+            return false;
+          }
         }
       }
     } else {
-      for (let i = 0; i < shipLength; i++) {
-        if (board[row + i][col] !== 0) {
-          return false;
+      // Check one column left, the column itself, and one column right
+      for (let c = Math.max(0, col - 1); c <= Math.min(boardSize - 1, col + 1); c++) {
+        // Check one row above, the rows of the ship, and one row below
+        for (let r = Math.max(0, row - 1); r <= Math.min(boardSize - 1, row + shipLength); r++) {
+          if (board[r][c] !== 0) {
+            return false;
+          }
         }
       }
     }
