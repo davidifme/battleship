@@ -7,7 +7,8 @@ import { ShipPlacement } from "./ShipPlacement";
 export const Game = (function () {
 
   let player, computer, gameState, currentTurn;
-  const SHIP_SIZES = [5, 4, 3, 3, 2, 1, 1];
+  // Changed back to 5 ships to match original implementation
+  const SHIP_SIZES = [5, 4, 3, 3, 2];
 
   function init() {
     player = Player.createPlayer("human");
@@ -24,14 +25,14 @@ export const Game = (function () {
     // Set up event listeners
     setupEventListeners();
     
-    // Set buttons
-    setupButtons();
-    
     // Initialize UI
     updateUI();
     
     // Initialize ship placement UI
     ShipPlacement.init(SHIP_SIZES, startGame);
+    
+    // Set up the buttons after everything else is initialized
+    setupButtons();
   }
 
   function placeComputerShips() {
@@ -127,7 +128,7 @@ export const Game = (function () {
     resetButton.textContent = "Play Again";
     resetButton.addEventListener("click", () => {
       document.body.removeChild(announcement);
-      init();
+      cleanReset();
     });
     
     announcement.appendChild(resetButton);
@@ -138,6 +139,32 @@ export const Game = (function () {
     // Render both boards
     UserInterface.renderBoard(player.board, "player-board", true);
     UserInterface.renderBoard(computer.board, "computer-board", false);
+  }
+
+  // Added a clean reset function to properly reset the game state
+  function cleanReset() {
+    // Remove any existing ship placement container
+    const placementContainer = document.querySelector(".ship-placement-container");
+    if (placementContainer) {
+      placementContainer.remove();
+    }
+    
+    // Remove any event listeners from existing buttons to prevent duplicates
+    const randomButton = document.querySelector('button.random');
+    const stopButton = document.querySelector('button.stop');
+    
+    if (randomButton) {
+      const newRandomButton = randomButton.cloneNode(true);
+      randomButton.parentNode.replaceChild(newRandomButton, randomButton);
+    }
+    
+    if (stopButton) {
+      const newStopButton = stopButton.cloneNode(true);
+      stopButton.parentNode.replaceChild(newStopButton, stopButton);
+    }
+    
+    // Initialize a fresh game
+    init();
   }
 
   function startGame(shipPlacements) {
@@ -164,7 +191,11 @@ export const Game = (function () {
     const randomButton = document.querySelector('button.random');
     if (!randomButton) return;
     
-    randomButton.addEventListener('click', () => {
+    // Remove existing event listeners
+    const newRandomButton = randomButton.cloneNode(true);
+    randomButton.parentNode.replaceChild(newRandomButton, randomButton);
+    
+    newRandomButton.addEventListener('click', () => {
       // Only allow randomization during setup or when game is over
       if (gameState !== 'setup' && gameState !== 'gameOver') return;
       
@@ -176,7 +207,7 @@ export const Game = (function () {
       // Clear the player's board
       player.board = Gameboard.createBoard(10);
       
-      // Clear any pending placements in the UI
+      // Reset the ShipPlacement UI
       ShipPlacement.resetPlacements();
       
       // Place ships randomly
@@ -212,9 +243,13 @@ export const Game = (function () {
     const stopButton = document.querySelector('button.stop');
     if (!stopButton) return;
     
-    stopButton.addEventListener('click', () => {
-      // Reset the game entirely
-      init();
+    // Remove existing event listeners
+    const newStopButton = stopButton.cloneNode(true);
+    stopButton.parentNode.replaceChild(newStopButton, stopButton);
+    
+    newStopButton.addEventListener('click', () => {
+      // Reset the game in a clean way
+      cleanReset();
     });
   }
 
