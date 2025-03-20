@@ -1,9 +1,9 @@
 export const UserInterface = (function () {
-  function renderBoard(boardData, isPlayerBoard = true) {
-    // Get the main container
-    const gameboardContainer = document.getElementById("gameboard");
+  function renderBoard(boardData, boardId, isPlayerBoard = true) {
+    // Get the board container
+    const gameboardContainer = document.getElementById(boardId);
     if (!gameboardContainer) {
-      console.error("Gameboard container not found");
+      console.error(`Gameboard container ${boardId} not found`);
       return;
     }
     
@@ -56,6 +56,7 @@ export const UserInterface = (function () {
         cell.className = "grid-cell";
         cell.dataset.row = i;
         cell.dataset.col = j;
+        cell.dataset.board = boardId;
 
         // If boardData provided, add visual state
         if (boardData) {

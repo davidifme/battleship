@@ -17,8 +17,14 @@ export const Game = (function () {
     // Place computer ships randomly
     placeComputerShips();
     
+    // Place player ships randomly for now
+    placePlayerShips();
+    
     // Set up event listeners
     setupEventListeners();
+    
+    // Change game state to playing
+    gameState = "playing";
     
     // Initialize UI
     updateUI();
@@ -39,11 +45,27 @@ export const Game = (function () {
     });
   }
 
+  function placePlayerShips() {
+    SHIP_SIZES.forEach(size => {
+      const ship = Ship.createShip(size);
+      let placed = false;
+      
+      while (!placed) {
+        const row = Math.floor(Math.random() * 10);
+        const col = Math.floor(Math.random() * 10);
+        const isHorizontal = Math.random() > 0.5;
+        
+        placed = Gameboard.placeShip(player.board, ship, row, col, isHorizontal);
+      }
+    });
+  }
+
   function setupEventListeners() {
-    const gridContainer = document.querySelector(".grid-container");
-    if (!gridContainer) return;
+    // Listen for clicks on the computer board only
+    const computerGridContainer = document.querySelector("#computer-board .grid-container");
+    if (!computerGridContainer) return;
     
-    gridContainer.addEventListener("click", handleCellClick);
+    computerGridContainer.addEventListener("click", handleCellClick);
   }
 
   function handleCellClick(event) {
@@ -117,12 +139,10 @@ export const Game = (function () {
     document.body.appendChild(announcement);
   }
 
-  function updateUI() {    
-    console.log("Updating UI, game state:", gameState);
-    console.log("Player board:", player.board);
-    
-    // Render the player's board
-    UserInterface.renderBoard(player.board, true);
+  function updateUI() {        
+    // Render both boards
+    UserInterface.renderBoard(player.board, "player-board", true);
+    UserInterface.renderBoard(computer.board, "computer-board", false);
   }
 
   function startGame(shipPlacements) {
