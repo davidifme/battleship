@@ -2,14 +2,19 @@ export const UserInterface = (function () {
   function renderBoard(boardData, isPlayerBoard = true) {
 
     const gameboardContainer = document.querySelector("#gameboard");
+    if (!gameboardContainer) return; // Exit if element doesn't exist
+    
     gameboardContainer.innerHTML = ""; // Clear previous board
 
     const gridContainer = document.querySelector(".grid-container");
+    if (!gridContainer) return; // Exit if element doesn't exist
 
     const size = boardData ? boardData.length : 10;
 
     // Create row indicators (1-10)
     const numbersContainer = document.querySelector(".numbers-container");
+    if (!numbersContainer) return;
+    
     numbersContainer.innerHTML = "";
     for (let i = 0; i < size; i++) {
       const numberEl = document.createElement("div");
@@ -20,6 +25,8 @@ export const UserInterface = (function () {
 
     // Create column indicators (A-J)
     const lettersContainer = document.querySelector(".letters-container");
+    if (!lettersContainer) return;
+    
     lettersContainer.innerHTML = "";
     for (let i = 0; i < size; i++) {
       const letterEl = document.createElement("div");
