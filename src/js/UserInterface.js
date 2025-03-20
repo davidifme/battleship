@@ -14,53 +14,22 @@ export const UserInterface = (function () {
       return;
     }
     
-    // Clear previous cells
-    gridContainer.innerHTML = "";
-    
+    // We need to preserve any event listeners on cells, so we'll update rather than replace
     const size = boardData ? boardData.length : 10;
-
-    // Create row indicators (1-10)
-    const numbersContainer = gameboardContainer.querySelector(".numbers-container");
-    if (!numbersContainer) {
-      console.error("Numbers container not found");
-      return;
-    }
+    const existingCells = gridContainer.querySelectorAll(".grid-cell");
     
-    numbersContainer.innerHTML = "";
-    for (let i = 0; i < size; i++) {
-      const numberEl = document.createElement("div");
-      numberEl.className = "number";
-      numberEl.textContent = i + 1;
-      numbersContainer.appendChild(numberEl);
-    }
-
-    // Create column indicators (A-J)
-    const lettersContainer = gameboardContainer.querySelector(".letters-container");
-    if (!lettersContainer) {
-      console.error("Letters container not found");
-      return;
-    }
-    
-    lettersContainer.innerHTML = "";
-    for (let i = 0; i < size; i++) {
-      const letterEl = document.createElement("div");
-      letterEl.className = "letter";
-      letterEl.textContent = String.fromCharCode(65 + i); // A-J
-      lettersContainer.appendChild(letterEl);
-    }
-
-    // Create the grid cells
-    for (let i = 0; i < size; i++) {
-      for (let j = 0; j < size; j++) {
-        const cell = document.createElement("button");
+    // If we already have the right number of cells, just update them
+    if (existingCells.length === size * size) {
+      existingCells.forEach(cell => {
+        const row = parseInt(cell.dataset.row);
+        const col = parseInt(cell.dataset.col);
+        
+        // Reset classes
         cell.className = "grid-cell";
-        cell.dataset.row = i;
-        cell.dataset.col = j;
-        cell.dataset.board = boardId;
-
-        // If boardData provided, add visual state
+        
+        // Update state based on boardData
         if (boardData) {
-          const cellValue = boardData[i][j];
+          const cellValue = boardData[row][col];
           if (cellValue === "hit") {
             cell.classList.add("hit");
           } else if (cellValue === "miss") {
@@ -70,8 +39,59 @@ export const UserInterface = (function () {
             cell.classList.add("ship");
           }
         }
+      });
+    } else {
+      // If cell count doesn't match, recreate the grid
+      gridContainer.innerHTML = "";
+      
+      // Create the grid cells
+      for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+          const cell = document.createElement("button");
+          cell.className = "grid-cell";
+          cell.dataset.row = i;
+          cell.dataset.col = j;
+          cell.dataset.board = boardId;
 
-        gridContainer.appendChild(cell);
+          // If boardData provided, add visual state
+          if (boardData) {
+            const cellValue = boardData[i][j];
+            if (cellValue === "hit") {
+              cell.classList.add("hit");
+            } else if (cellValue === "miss") {
+              cell.classList.add("miss");
+            } else if (cellValue !== 0 && isPlayerBoard) {
+              // Only show ships on player's board
+              cell.classList.add("ship");
+            }
+          }
+
+          gridContainer.appendChild(cell);
+        }
+      }
+    }
+    
+    // Create row indicators (1-10) if needed
+    const numbersContainer = gameboardContainer.querySelector(".numbers-container");
+    if (numbersContainer && numbersContainer.children.length !== size) {
+      numbersContainer.innerHTML = "";
+      for (let i = 0; i < size; i++) {
+        const numberEl = document.createElement("div");
+        numberEl.className = "number";
+        numberEl.textContent = i + 1;
+        numbersContainer.appendChild(numberEl);
+      }
+    }
+
+    // Create column indicators (A-J) if needed
+    const lettersContainer = gameboardContainer.querySelector(".letters-container");
+    if (lettersContainer && lettersContainer.children.length !== size) {
+      lettersContainer.innerHTML = "";
+      for (let i = 0; i < size; i++) {
+        const letterEl = document.createElement("div");
+        letterEl.className = "letter";
+        letterEl.textContent = String.fromCharCode(65 + i); // A-J
+        lettersContainer.appendChild(letterEl);
       }
     }
 

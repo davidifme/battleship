@@ -2,6 +2,7 @@ import { Gameboard } from "./gameBoard";
 import { Player } from "./Player";
 import { Ship } from "./Ship";
 import { UserInterface } from "./UserInterface";
+import { ShipPlacement } from "./ShipPlacement";
 
 export const Game = (function () {
 
@@ -14,11 +15,11 @@ export const Game = (function () {
     gameState = "setup"; // start in setup mode
     currentTurn = "player";
     
+    // Clear the player's board
+    player.board = Gameboard.createBoard(10);
+    
     // Place computer ships randomly
     placeComputerShips();
-    
-    // Place player ships randomly for now
-    placePlayerShips();
     
     // Set up event listeners
     setupEventListeners();
@@ -26,8 +27,11 @@ export const Game = (function () {
     // Set buttons
     setupButtons();
     
-    // Initialize UI (but don't change game state yet)
+    // Initialize UI
     updateUI();
+    
+    // Initialize ship placement UI
+    ShipPlacement.init(SHIP_SIZES, startGame);
   }
 
   function placeComputerShips() {
@@ -45,27 +49,18 @@ export const Game = (function () {
     });
   }
 
-  function placePlayerShips() {
-    SHIP_SIZES.forEach(size => {
-      const ship = Ship.createShip(size);
-      let placed = false;
-      
-      while (!placed) {
-        const row = Math.floor(Math.random() * 10);
-        const col = Math.floor(Math.random() * 10);
-        const isHorizontal = Math.random() > 0.5;
-        
-        placed = Gameboard.placeShip(player.board, ship, row, col, isHorizontal);
-      }
-    });
-  }
-
   function setupEventListeners() {
     // Listen for clicks on the computer board only
     const computerGridContainer = document.querySelector("#computer-board .grid-container");
     if (!computerGridContainer) return;
     
-    computerGridContainer.addEventListener("click", handleCellClick);
+    // Remove existing event listeners to prevent duplicates
+    const oldElement = computerGridContainer;
+    const newElement = oldElement.cloneNode(true);
+    oldElement.parentNode.replaceChild(newElement, oldElement);
+    
+    // Add event listener to the new element
+    newElement.addEventListener("click", handleCellClick);
   }
 
   function handleCellClick(event) {
@@ -74,12 +69,6 @@ export const Game = (function () {
     
     const row = parseInt(cell.dataset.row);
     const col = parseInt(cell.dataset.col);
-    
-    // If in setup mode, start the game AND process the attack
-    if (gameState === "setup") {
-      startBattle();
-      // Don't return here, continue to process the attack
-    }
     
     if (gameState !== "playing" || currentTurn !== "player") return;
     
@@ -154,6 +143,9 @@ export const Game = (function () {
   function startGame(shipPlacements) {
     if (gameState !== "setup") return false;
     
+    // Clear any ships from randomization
+    player.board = Gameboard.createBoard(10);
+    
     // Place player ships based on input
     shipPlacements.forEach(placement => {
       const { size, row, col, isHorizontal } = placement;
@@ -166,16 +158,6 @@ export const Game = (function () {
     updateUI();
     
     return true;
-  }
-
-  function startBattle() {
-    if (gameState !== "setup") return;
-    
-    gameState = "playing";
-    currentTurn = "player";
-    
-    // Maybe add some visual indication that game has started
-    updateUI();
   }
 
   function setupRandomButton() {
@@ -194,11 +176,35 @@ export const Game = (function () {
       // Clear the player's board
       player.board = Gameboard.createBoard(10);
       
-      // Place ships randomly again
-      placePlayerShips();
+      // Clear any pending placements in the UI
+      ShipPlacement.resetPlacements();
+      
+      // Place ships randomly
+      SHIP_SIZES.forEach(size => {
+        const ship = Ship.createShip(size);
+        let placed = false;
+        
+        while (!placed) {
+          const row = Math.floor(Math.random() * 10);
+          const col = Math.floor(Math.random() * 10);
+          const isHorizontal = Math.random() > 0.5;
+          
+          placed = Gameboard.placeShip(player.board, ship, row, col, isHorizontal);
+        }
+      });
+      
+      // Start the game with random placements
+      gameState = "playing";
+      currentTurn = "player";
       
       // Update the UI to show the new ship placements
       updateUI();
+      
+      // Hide the ship placement container
+      const placementContainer = document.querySelector(".ship-placement-container");
+      if (placementContainer) {
+        placementContainer.style.display = "none";
+      }
     });
   }
 
@@ -208,17 +214,7 @@ export const Game = (function () {
     
     stopButton.addEventListener('click', () => {
       // Reset the game entirely
-      player = Player.createPlayer("human");
-      computer = Player.createPlayer("computer");
-      gameState = "setup";
-      currentTurn = "player";
-      
-      // Place ships for both players
-      placeComputerShips();
-      placePlayerShips();
-      
-      // Update the UI to show the new game state
-      updateUI();
+      init();
     });
   }
 
@@ -230,7 +226,6 @@ export const Game = (function () {
   return {
     init,
     startGame,
-    startBattle,
     handleCellClick,
     getCurrentState: () => ({
       gameState,
