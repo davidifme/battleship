@@ -118,11 +118,11 @@ export const Game = (function () {
   }
 
   function updateUI() {    
-    // In a real implementation, you'd have two separate boards
-    // This just shows the current state
-    if (gameState === "setup" || gameState === "playing") {
-      UserInterface.renderBoard(player.board, true);
-    }
+    console.log("Updating UI, game state:", gameState);
+    console.log("Player board:", player.board);
+    
+    // Render the player's board
+    UserInterface.renderBoard(player.board, true);
   }
 
   function startGame(shipPlacements) {

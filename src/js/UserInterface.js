@@ -1,19 +1,30 @@
 export const UserInterface = (function () {
   function renderBoard(boardData, isPlayerBoard = true) {
-
-    const gameboardContainer = document.querySelector("#gameboard");
-    if (!gameboardContainer) return; // Exit if element doesn't exist
+    // Get the main container
+    const gameboardContainer = document.getElementById("gameboard");
+    if (!gameboardContainer) {
+      console.error("Gameboard container not found");
+      return;
+    }
     
-    gameboardContainer.innerHTML = ""; // Clear previous board
-
-    const gridContainer = document.querySelector(".grid-container");
-    if (!gridContainer) return; // Exit if element doesn't exist
-
+    // Get or create grid container
+    const gridContainer = gameboardContainer.querySelector(".grid-container");
+    if (!gridContainer) {
+      console.error("Grid container not found");
+      return;
+    }
+    
+    // Clear previous cells
+    gridContainer.innerHTML = "";
+    
     const size = boardData ? boardData.length : 10;
 
     // Create row indicators (1-10)
-    const numbersContainer = document.querySelector(".numbers-container");
-    if (!numbersContainer) return;
+    const numbersContainer = gameboardContainer.querySelector(".numbers-container");
+    if (!numbersContainer) {
+      console.error("Numbers container not found");
+      return;
+    }
     
     numbersContainer.innerHTML = "";
     for (let i = 0; i < size; i++) {
@@ -24,8 +35,11 @@ export const UserInterface = (function () {
     }
 
     // Create column indicators (A-J)
-    const lettersContainer = document.querySelector(".letters-container");
-    if (!lettersContainer) return;
+    const lettersContainer = gameboardContainer.querySelector(".letters-container");
+    if (!lettersContainer) {
+      console.error("Letters container not found");
+      return;
+    }
     
     lettersContainer.innerHTML = "";
     for (let i = 0; i < size; i++) {
@@ -63,8 +77,6 @@ export const UserInterface = (function () {
     // Set grid template to match size
     gridContainer.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
     gridContainer.style.gridTemplateRows = `repeat(${size}, 1fr)`;
-
-    gridContainer.style.maxWidth = `${size * 50}px`;
   }
 
   return {
