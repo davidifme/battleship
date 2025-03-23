@@ -3,6 +3,7 @@ import { Player } from "./Player";
 import { Ship } from "./Ship";
 import { UserInterface } from "./UserInterface";
 import { ShipPlacement } from "./ShipPlacement";
+import { ShipStatus } from "./ShipStatus";
 
 export const Game = (function () {
   let player, computer, player2, gameState, currentTurn, gameMode;
@@ -26,6 +27,11 @@ export const Game = (function () {
 
     player.board = Gameboard.createBoard(10);
     setupEventListeners();
+    
+    // Create ship status displays
+    ShipStatus.createShipStatusDisplay("player-status", SHIP_SIZES);
+    ShipStatus.createShipStatusDisplay("computer-status", SHIP_SIZES);
+    
     updateUI();
     
     // Show game mode selection if we're just starting
@@ -349,10 +355,16 @@ export const Game = (function () {
 
   function updateUI() {
     UserInterface.renderBoard(player.board, "player-board", true);
+    
+    // Update ship status for player
+    ShipStatus.updateShipStatus("player-status", player.board);
+    
     if (gameMode === "singleplayer") {
       UserInterface.renderBoard(computer.board, "computer-board", false);
+      ShipStatus.updateShipStatus("computer-status", computer.board);
     } else {
       UserInterface.renderBoard(player2.board, "computer-board", false);
+      ShipStatus.updateShipStatus("computer-status", player2.board);
     }
   }
 
