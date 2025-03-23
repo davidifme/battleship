@@ -6,8 +6,7 @@ import { ShipPlacement } from "./ShipPlacement";
 
 export const Game = (function () {
   let player, computer, player2, gameState, currentTurn, gameMode;
-  // const SHIP_SIZES = [5, 4, 3, 3, 2, 1, 1];
-  const SHIP_SIZES = [6];
+  const SHIP_SIZES = [5, 4, 3, 3, 2, 1, 1];
 
   function init(mode = "singleplayer") {
     gameMode = mode;
