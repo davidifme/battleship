@@ -28,10 +28,8 @@
   display: flex;
   cursor: grab;
   position: relative;
-  padding: 2px;
   border-radius: 4px;
   background-color: rgba(107, 139, 171, 0.3);
-  border: 2px solid #6b8bab;
   box-sizing: content-box;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   
@@ -144,5 +142,10 @@
   
   &.row-highlight, &.col-highlight {
     background-color: rgba(52, 152, 219, 0.15);
+    
+    // Add this to preserve ship styling
+    &.ship {
+      background-color: #6b8bab;
+    }
   }
 }
