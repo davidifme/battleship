@@ -55,14 +55,42 @@ export const ShipPlacement = (function() {
   // Handle rotation as a named function so we can remove the event listener
   function handleRotation(e) {
     if (e.key.toLowerCase() === 'r') {
-      isHorizontal = !isHorizontal;
-      document.querySelectorAll(".ship").forEach(ship => {
-        ship.classList.toggle("horizontal");
-        ship.classList.toggle("vertical");
-      });
+      rotateShips();
     }
   }
   
+  function rotateShips() {
+    isHorizontal = !isHorizontal;
+    document.querySelectorAll(".ship").forEach(ship => {
+      ship.classList.toggle("horizontal");
+      ship.classList.toggle("vertical");
+    });
+
+    // Update rotation indicator
+    const indicator = document.querySelector(".orientation-value");
+    if (indicator) {
+      indicator.textContent = isHorizontal ? 'Horizontal' : 'Vertical';
+    }
+
+    // Update visual feedback for dragging
+    updateRotationVisualFeedback();
+  }
+
+  function updateRotationVisualFeedback() {
+    if (draggedShip) {
+      const hoveredCell = document.elementFromPoint(
+        window.lastMouseX || 0,
+        window.lastMouseY || 0
+      );
+
+      if (hoveredCell && hoveredCell.classList.contains("grid-cell")) {
+        const row = parseInt(hoveredCell.dataset.row);
+        const col = parseInt(hoveredCell.dataset.col);
+        highlightShipPlacement(row, col, draggedShip.size, isHorizontal);
+      }
+    }
+  }
+
   function createPlacementUI() {
     // Get the player board container
     const playerBoardContainer = document.querySelector(".board-container:first-child");
@@ -87,10 +115,30 @@ export const ShipPlacement = (function() {
     `;
     placementContainer.appendChild(instructions);
     
-    // Create ships to drag
+    // Add rotation indicator
+    const rotationIndicator = document.createElement("div");
+    rotationIndicator.className = "rotation-indicator";
+    rotationIndicator.innerHTML = `
+      <span>Current orientation: </span>
+      <span class="orientation-value">${isHorizontal ? 'Horizontal' : 'Vertical'}</span>
+    `;
+    instructions.appendChild(rotationIndicator);
+    
+    // Create ships container first
     const shipsContainer = document.createElement("div");
     shipsContainer.className = "ships-container";
     
+    // Add rotation button
+    const rotateButton = document.createElement("button");
+    rotateButton.className = "rotate-button";
+    rotateButton.textContent = "Rotate Ships";
+    rotateButton.addEventListener("click", rotateShips);
+    placementContainer.appendChild(rotateButton);
+    
+    // Now append the ships container after the rotate button
+    placementContainer.appendChild(shipsContainer);
+    
+    // Create ship elements
     shipSizes.forEach((size, index) => {
       const shipElement = document.createElement("div");
       shipElement.className = `ship size-${size} ${isHorizontal ? 'horizontal' : 'vertical'}`;
@@ -107,8 +155,6 @@ export const ShipPlacement = (function() {
       
       shipsContainer.appendChild(shipElement);
     });
-    
-    placementContainer.appendChild(shipsContainer);
     
     // Create start button
     const startButton = document.createElement("button");
@@ -132,6 +178,12 @@ export const ShipPlacement = (function() {
     // Rotation with 'R' key
     document.addEventListener("keydown", handleRotation);
     
+    // Track mouse position for rotation updates
+    document.addEventListener("mousemove", (e) => {
+      window.lastMouseX = e.clientX;
+      window.lastMouseY = e.clientY;
+    });
+
     // Drag and drop events
     const ships = document.querySelectorAll(".ship");
     const cells = document.querySelectorAll("#player-board .grid-cell");
@@ -227,21 +279,7 @@ export const ShipPlacement = (function() {
     if (!draggedShip) return;
     
     // Toggle orientation during drag
-    isHorizontal = !isHorizontal;
-    
-    // Update visual feedback
-    document.querySelectorAll(".ship").forEach(ship => {
-      ship.classList.toggle("horizontal");
-      ship.classList.toggle("vertical");
-    });
-    
-    // Re-highlight with new orientation if over a cell
-    const cell = document.elementFromPoint(e.clientX, e.clientY);
-    if (cell && cell.classList.contains("grid-cell")) {
-      const row = parseInt(cell.dataset.row);
-      const col = parseInt(cell.dataset.col);
-      highlightShipPlacement(row, col, draggedShip.size, isHorizontal);
-    }
+    rotateShips();
     
     return false;
   }
@@ -259,8 +297,7 @@ export const ShipPlacement = (function() {
     const inBoardArea = (
       e.clientX >= boardRect.left - margin &&
       e.clientX <= boardRect.right + margin &&
-      e.clientY >= boardRect.top - margin &&
-      e.clientY <= boardRect.bottom + margin
+      e.clientY >= boardRect.top - margin
     );
     
     if (!inBoardArea) {
