@@ -256,16 +256,15 @@ export const Game = (function () {
   function computerTurn() {
     if (gameState !== "playing" || currentTurn !== "computer") return;
     
-    const attackCoords = Player.makeRandomAttack(player.board);
-    if (!attackCoords) return; // No valid moves left
-    
-    const row = attackCoords.row;
-    const col = attackCoords.col;
-    
     const attackResult = computer.attack(player.board);
     if (!attackResult) return; // Attack failed for some reason
     
     updateUI();
+    
+    // Use the coordinates that were actually used in the attack
+    // computer.lastAttack is set in computerAttack function in Player.js
+    const row = computer.lastAttack.row;
+    const col = computer.lastAttack.col;
     
     // Add visual feedback for computer's attack
     const isHit = player.board[row][col] === "hit";
@@ -275,12 +274,12 @@ export const Game = (function () {
     
     // If it's a hit, computer gets another turn after a delay
     if (isHit) {
-      setTimeout(computerTurn, 1500);
+        setTimeout(computerTurn, 1500);
     } else {
-      // If it's a miss, switch back to player's turn
-      currentTurn = "player1";
+        // If it's a miss, switch back to player's turn
+        currentTurn = "player1";
     }
-  }
+}
 
   function checkGameOver() {
     if (gameMode === "singleplayer") {
