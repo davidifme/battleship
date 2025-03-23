@@ -77,21 +77,6 @@ export const ShipPlacement = (function() {
     }
   }
 
-  function updateRotationVisualFeedback() {
-    if (draggedShip) {
-      const hoveredCell = document.elementFromPoint(
-        window.lastMouseX || 0,
-        window.lastMouseY || 0
-      );
-
-      if (hoveredCell && hoveredCell.classList.contains("grid-cell")) {
-        const row = parseInt(hoveredCell.dataset.row);
-        const col = parseInt(hoveredCell.dataset.col);
-        highlightShipPlacement(row, col, draggedShip.size, isHorizontal);
-      }
-    }
-  }
-
   function createPlacementUI() {
     // Get the player board container
     const playerBoardContainer = document.querySelector(".board-container:first-child");

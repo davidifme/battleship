@@ -6,7 +6,7 @@ import { ShipPlacement } from "./ShipPlacement";
 
 export const Game = (function () {
   let player, computer, gameState, currentTurn;
-  const SHIP_SIZES = [5, 4, 3, 3, 2];
+  const SHIP_SIZES = [5, 4, 3, 3, 2, 1, 1];
 
   function init() {
     player = Player.createPlayer("human");
