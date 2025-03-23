@@ -101,11 +101,12 @@ export const Game = (function () {
     const result = document.createElement("div");
     result.className = `attack-result ${isHit ? 'hit' : 'miss'}`;
     
-    const message = isHit ? "HIT!" : "MISS";
+    const message = isHit ? "HIT! GO AGAIN!" : "MISS!";
     result.textContent = message;
     
     // Position near the attack location
-    const cell = document.querySelector(`#computer-board .grid-cell[data-row="${row}"][data-col="${col}"]`);
+    const boardId = currentTurn === "player1" || currentTurn === "player2" ? "computer-board" : "player-board";
+    const cell = document.querySelector(`#${boardId} .grid-cell[data-row="${row}"][data-col="${col}"]`);
     if (cell) {
       const cellRect = cell.getBoundingClientRect();
       result.style.position = "absolute";
@@ -146,8 +147,12 @@ export const Game = (function () {
         displayAttackResult(row, col, isHit);
         
         if (checkGameOver()) return;
-        currentTurn = "computer";
-        setTimeout(computerTurn, 1500);
+        
+        // Only switch turn to computer if it's a miss
+        if (!isHit) {
+          currentTurn = "computer";
+          setTimeout(computerTurn, 1500);
+        }
       }
     } 
     // In multiplayer mode - player 1's turn
@@ -160,11 +165,15 @@ export const Game = (function () {
         displayAttackResult(row, col, isHit);
         
         if (checkGameOver()) return;
-        currentTurn = "player2";
-        // Add delay before showing pass device screen
-        setTimeout(() => {
-          showPassDeviceScreen();
-        }, 1500); // 1.5 second delay to see attack results
+        
+        // Only switch turn if it's a miss
+        if (!isHit) {
+          currentTurn = "player2";
+          // Add delay before showing pass device screen
+          setTimeout(() => {
+            showPassDeviceScreen();
+          }, 1500); // 1.5 second delay to see attack results
+        }
       }
     } 
     // In multiplayer mode - player 2's turn
@@ -177,11 +186,15 @@ export const Game = (function () {
         displayAttackResult(row, col, isHit);
         
         if (checkGameOver()) return;
-        currentTurn = "player1";
-        // Add delay before showing pass device screen
-        setTimeout(() => {
-          showPassDeviceScreen();
-        }, 1500); // 1.5 second delay to see attack results
+        
+        // Only switch turn if it's a miss
+        if (!isHit) {
+          currentTurn = "player1";
+          // Add delay before showing pass device screen
+          setTimeout(() => {
+            showPassDeviceScreen();
+          }, 1500); // 1.5 second delay to see attack results
+        }
       }
     }
   }
@@ -242,10 +255,31 @@ export const Game = (function () {
 
   function computerTurn() {
     if (gameState !== "playing" || currentTurn !== "computer") return;
-    computer.attack(player.board);
+    
+    const attackCoords = Player.makeRandomAttack(player.board);
+    if (!attackCoords) return; // No valid moves left
+    
+    const row = attackCoords.row;
+    const col = attackCoords.col;
+    
+    const attackResult = computer.attack(player.board);
+    if (!attackResult) return; // Attack failed for some reason
+    
     updateUI();
+    
+    // Add visual feedback for computer's attack
+    const isHit = player.board[row][col] === "hit";
+    displayAttackResult(row, col, isHit);
+    
     if (checkGameOver()) return;
-    currentTurn = "player1";
+    
+    // If it's a hit, computer gets another turn after a delay
+    if (isHit) {
+      setTimeout(computerTurn, 1500);
+    } else {
+      // If it's a miss, switch back to player's turn
+      currentTurn = "player1";
+    }
   }
 
   function checkGameOver() {

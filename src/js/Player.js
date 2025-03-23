@@ -45,11 +45,16 @@ export const Player = (function () {
     const attackCoords = Player.makeRandomAttack(enemyBoard);
     if (!attackCoords) return false;
 
-    return Gameboard.receiveAttack(
+    const attackResult = Gameboard.receiveAttack(
       enemyBoard,
       attackCoords.row,
       attackCoords.col,
     );
+    
+    // Store attack coordinates so we can reference them later
+    this.lastAttack = attackCoords;
+    
+    return attackResult;
   }
 
   return {
