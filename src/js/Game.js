@@ -5,20 +5,72 @@ import { UserInterface } from "./UserInterface";
 import { ShipPlacement } from "./ShipPlacement";
 
 export const Game = (function () {
-  let player, computer, gameState, currentTurn;
+  let player, computer, player2, gameState, currentTurn, gameMode;
   const SHIP_SIZES = [5, 4, 3, 3, 2, 1, 1];
 
-  function init() {
+  function init(mode = "singleplayer") {
+    gameMode = mode;
     player = Player.createPlayer("human");
-    computer = Player.createPlayer("computer");
     gameState = "setup";
-    currentTurn = "player";
+    currentTurn = "player1";
+
+    if (gameMode === "singleplayer") {
+      computer = Player.createPlayer("computer");
+      computer.board = Gameboard.createBoard(10);
+      placeComputerShips();
+    } else {
+      // For 2-player mode
+      player2 = Player.createPlayer("human");
+      player2.board = Gameboard.createBoard(10);
+    }
 
     player.board = Gameboard.createBoard(10);
-    placeComputerShips();
     setupEventListeners();
     updateUI();
-    ShipPlacement.init(SHIP_SIZES, startGame);
+    
+    // Show game mode selection if we're just starting
+    if (mode === "select") {
+      showGameModeSelection();
+    } else {
+      // Otherwise start ship placement for player 1
+      ShipPlacement.init(SHIP_SIZES, startGame, "Player 1");
+    }
+  }
+
+  function showGameModeSelection() {
+    // Clear any existing selection UI
+    const existingSelection = document.querySelector(".mode-selection-container");
+    if (existingSelection) {
+      existingSelection.remove();
+    }
+
+    const selectionContainer = document.createElement("div");
+    selectionContainer.className = "mode-selection-container";
+    
+    const heading = document.createElement("h2");
+    heading.textContent = "Select Game Mode";
+    selectionContainer.appendChild(heading);
+    
+    const singlePlayerBtn = document.createElement("button");
+    singlePlayerBtn.className = "mode-button single-player";
+    singlePlayerBtn.textContent = "Play vs Computer";
+    singlePlayerBtn.addEventListener("click", () => {
+      selectionContainer.remove();
+      init("singleplayer");
+    });
+    
+    const twoPlayerBtn = document.createElement("button");
+    twoPlayerBtn.className = "mode-button two-player";
+    twoPlayerBtn.textContent = "Play vs Friend";
+    twoPlayerBtn.addEventListener("click", () => {
+      selectionContainer.remove();
+      init("multiplayer");
+    });
+    
+    selectionContainer.appendChild(singlePlayerBtn);
+    selectionContainer.appendChild(twoPlayerBtn);
+    
+    document.querySelector(".game-container").appendChild(selectionContainer);
   }
 
   function placeComputerShips() {
@@ -44,6 +96,38 @@ export const Game = (function () {
     newElement.addEventListener("click", handleCellClick);
   }
 
+  // Add this function to show attack results
+  function displayAttackResult(row, col, isHit) {
+    const result = document.createElement("div");
+    result.className = `attack-result ${isHit ? 'hit' : 'miss'}`;
+    
+    const message = isHit ? "HIT!" : "MISS";
+    result.textContent = message;
+    
+    // Position near the attack location
+    const cell = document.querySelector(`#computer-board .grid-cell[data-row="${row}"][data-col="${col}"]`);
+    if (cell) {
+      const cellRect = cell.getBoundingClientRect();
+      result.style.position = "absolute";
+      result.style.left = `${cellRect.left + cellRect.width/2}px`;
+      result.style.top = `${cellRect.top + cellRect.height/2}px`;
+      result.style.transform = "translate(-50%, -50%)";
+    }
+    
+    document.body.appendChild(result);
+    
+    // Fade out and remove after the delay
+    setTimeout(() => {
+      result.classList.add("fadeout");
+      setTimeout(() => {
+        if (result.parentNode) {
+          result.parentNode.removeChild(result);
+        }
+      }, 500);
+    }, 1000);
+  }
+
+  // Modify the handleCellClick function to use the new display
   function handleCellClick(event) {
     const cell = event.target;
     if (!cell.classList.contains("grid-cell")) return;
@@ -51,14 +135,102 @@ export const Game = (function () {
     const row = parseInt(cell.dataset.row);
     const col = parseInt(cell.dataset.col);
 
-    if (gameState !== "playing" || currentTurn !== "player") return;
+    if (gameState !== "playing") return;
+    
+    // In single player mode
+    if (gameMode === "singleplayer" && currentTurn === "player1") {
+      const attackResult = player.attack(computer.board, row, col);
+      if (attackResult) {
+        const isHit = computer.board[row][col] === "hit";
+        updateUI();
+        displayAttackResult(row, col, isHit);
+        
+        if (checkGameOver()) return;
+        currentTurn = "computer";
+        setTimeout(computerTurn, 1500);
+      }
+    } 
+    // In multiplayer mode - player 1's turn
+    else if (gameMode === "multiplayer" && currentTurn === "player1") {
+      const attackResult = player.attack(player2.board, row, col);
+      if (attackResult) {
+        const isHit = player2.board[row][col] === "hit";
+        updateUI();
+        displayAttackResult(row, col, isHit);
+        
+        if (checkGameOver()) return;
+        currentTurn = "player2";
+        // Add delay before showing pass device screen
+        setTimeout(() => {
+          showPassDeviceScreen();
+        }, 1500); // 1.5 second delay to see attack results
+      }
+    } 
+    // In multiplayer mode - player 2's turn
+    else if (gameMode === "multiplayer" && currentTurn === "player2") {
+      const attackResult = player2.attack(player.board, row, col);
+      if (attackResult) {
+        const isHit = player.board[row][col] === "hit";
+        updateUI();
+        displayAttackResult(row, col, isHit);
+        
+        if (checkGameOver()) return;
+        currentTurn = "player1";
+        // Add delay before showing pass device screen
+        setTimeout(() => {
+          showPassDeviceScreen();
+        }, 1500); // 1.5 second delay to see attack results
+      }
+    }
+  }
 
-    const attackResult = player.attack(computer.board, row, col);
-    if (attackResult) {
+  function showPassDeviceScreen() {
+    const passScreen = document.createElement("div");
+    passScreen.className = "pass-device-screen";
+    
+    const playerName = currentTurn === "player1" ? "Player 1" : "Player 2";
+    
+    passScreen.innerHTML = `
+      <div class="pass-screen-content">
+        <h2>Pass the device to ${playerName}</h2>
+        <p>Make sure the other player isn't peeking at your board!</p>
+        <button class="ready-button">I'm Ready</button>
+      </div>
+    `;
+    
+    document.body.appendChild(passScreen);
+    
+    const readyButton = passScreen.querySelector(".ready-button");
+    readyButton.addEventListener("click", () => {
+      document.body.removeChild(passScreen);
+      // Flip which board is shown to the player
+      updateUIForCurrentPlayer();
+    });
+  }
+
+  function updateUIForCurrentPlayer() {
+    if (gameMode === "multiplayer") {
+      // In multiplayer, we show the opponent's board and hide ship positions on player's own board
+      if (currentTurn === "player1") {
+        // Player 1's turn - show player 2's board for attacking
+        UserInterface.renderBoard(player.board, "player-board", true);  // Show own ships
+        UserInterface.renderBoard(player2.board, "computer-board", false);  // Hide opponent ships
+        
+        // Update board labels
+        document.querySelector(".board-container:first-child h2").textContent = "Your Fleet";
+        document.querySelector(".board-container:last-child h2").textContent = "Opponent's Fleet";
+      } else {
+        // Player 2's turn - show player 1's board for attacking
+        UserInterface.renderBoard(player2.board, "player-board", true);  // Show own ships
+        UserInterface.renderBoard(player.board, "computer-board", false);  // Hide opponent ships
+        
+        // Update board labels
+        document.querySelector(".board-container:first-child h2").textContent = "Your Fleet";
+        document.querySelector(".board-container:last-child h2").textContent = "Opponent's Fleet";
+      }
+    } else {
+      // Normal single player UI update
       updateUI();
-      if (checkGameOver()) return;
-      currentTurn = "computer";
-      setTimeout(computerTurn, 500);
     }
   }
 
@@ -67,19 +239,33 @@ export const Game = (function () {
     computer.attack(player.board);
     updateUI();
     if (checkGameOver()) return;
-    currentTurn = "player";
+    currentTurn = "player1";
   }
 
   function checkGameOver() {
-    if (Gameboard.allShipsSunk(player.board)) {
-      gameState = "gameOver";
-      announceWinner("Computer");
-      return true;
-    }
-    if (Gameboard.allShipsSunk(computer.board)) {
-      gameState = "gameOver";
-      announceWinner("Player");
-      return true;
+    if (gameMode === "singleplayer") {
+      if (Gameboard.allShipsSunk(player.board)) {
+        gameState = "gameOver";
+        announceWinner("Computer");
+        return true;
+      }
+      if (Gameboard.allShipsSunk(computer.board)) {
+        gameState = "gameOver";
+        announceWinner("Player");
+        return true;
+      }
+    } else {
+      // Multiplayer
+      if (Gameboard.allShipsSunk(player.board)) {
+        gameState = "gameOver";
+        announceWinner("Player 2");
+        return true;
+      }
+      if (Gameboard.allShipsSunk(player2.board)) {
+        gameState = "gameOver";
+        announceWinner("Player 1");
+        return true;
+      }
     }
     return false;
   }
@@ -102,7 +288,11 @@ export const Game = (function () {
 
   function updateUI() {
     UserInterface.renderBoard(player.board, "player-board", true);
-    UserInterface.renderBoard(computer.board, "computer-board", false);
+    if (gameMode === "singleplayer") {
+      UserInterface.renderBoard(computer.board, "computer-board", false);
+    } else {
+      UserInterface.renderBoard(player2.board, "computer-board", false);
+    }
   }
 
   function cleanReset() {
@@ -110,21 +300,44 @@ export const Game = (function () {
     if (placementContainer) {
       placementContainer.remove();
     }
-    init();
+    init("select"); // Go back to game mode selection
   }
 
   function startGame(shipPlacements) {
     if (gameState !== "setup") return false;
 
-    player.board = Gameboard.createBoard(10);
-    shipPlacements.forEach(placement => {
-      const { size, row, col, isHorizontal } = placement;
-      const ship = Ship.createShip(size);
-      Gameboard.placeShip(player.board, ship, row, col, isHorizontal);
-    });
+    // Handle player 1 ship placement
+    if (currentTurn === "player1") {
+      player.board = Gameboard.createBoard(10);
+      shipPlacements.forEach(placement => {
+        const { size, row, col, isHorizontal } = placement;
+        const ship = Ship.createShip(size);
+        Gameboard.placeShip(player.board, ship, row, col, isHorizontal);
+      });
+
+      if (gameMode === "multiplayer") {
+        // In multiplayer, now we need player 2 to place ships
+        currentTurn = "player2";
+        showPassDeviceScreen();
+        ShipPlacement.init(SHIP_SIZES, startGame, "Player 2");
+        return true;
+      }
+    } 
+    // Handle player 2 ship placement
+    else if (currentTurn === "player2" && gameMode === "multiplayer") {
+      player2.board = Gameboard.createBoard(10);
+      shipPlacements.forEach(placement => {
+        const { size, row, col, isHorizontal } = placement;
+        const ship = Ship.createShip(size);
+        Gameboard.placeShip(player2.board, ship, row, col, isHorizontal);
+      });
+      
+      // Both players have placed ships, start the game
+      currentTurn = "player1";
+      showPassDeviceScreen();
+    }
 
     gameState = "playing";
-    currentTurn = "player";
     updateUI();
     return true;
   }
@@ -136,8 +349,9 @@ export const Game = (function () {
     getCurrentState: () => ({
       gameState,
       currentTurn,
+      gameMode,
       playerBoard: player?.board,
-      computerBoard: computer?.board
+      computerBoard: gameMode === "singleplayer" ? computer?.board : player2?.board
     }),
     getShipSizes: () => SHIP_SIZES
   };

@@ -7,7 +7,7 @@ export const ShipPlacement = (function() {
   let shipSizes = [];
   let setupCallback = null;
   
-  function init(sizes, callback) {
+  function init(sizes, callback, playerLabel = "Player") {
     shipSizes = [...sizes];
     setupCallback = callback;
     pendingPlacements = [];
@@ -21,13 +21,10 @@ export const ShipPlacement = (function() {
     cleanupEvents();
     
     // Create the ship placement container
-    createPlacementUI();
+    createPlacementUI(playerLabel);
     
     // Set up event listeners for rotation and drag-drop
     setupEventListeners();
-    
-    // The buttons are now created in createPlacementUI
-    // No need to call addUndoRedoButtons or addAutoArrangeButton
   }
   
   function cleanupEvents() {
@@ -77,7 +74,7 @@ export const ShipPlacement = (function() {
     }
   }
 
-  function createPlacementUI() {
+  function createPlacementUI(playerLabel) {
     // Get the player board container
     const playerBoardContainer = document.querySelector(".board-container:first-child");
     
@@ -92,10 +89,11 @@ export const ShipPlacement = (function() {
     placementContainer.className = "ship-placement-container";
     playerBoardContainer.insertBefore(placementContainer, playerBoardContainer.querySelector(".buttons"));
     
-    // Create instructions
+    // Create instructions with player label
     const instructions = document.createElement("div");
     instructions.className = "placement-instructions";
     instructions.innerHTML = `
+      <h3>${playerLabel}, place your ships</h3>
       <p>Drag ships to place them on the board</p>
       <p>Press <strong>R</strong> to rotate ships</p>
     `;
