@@ -155,7 +155,8 @@ export const Game = (function () {
       const attackResult = player.attack(player2.board, row, col);
       if (attackResult) {
         const isHit = player2.board[row][col] === "hit";
-        updateUI();
+        // Only show hits/misses, not ships
+        UserInterface.renderBoard(player2.board, "computer-board", false);
         displayAttackResult(row, col, isHit);
         
         if (checkGameOver()) return;
@@ -171,7 +172,8 @@ export const Game = (function () {
       const attackResult = player2.attack(player.board, row, col);
       if (attackResult) {
         const isHit = player.board[row][col] === "hit";
-        updateUI();
+        // Only show hits/misses, not ships
+        UserInterface.renderBoard(player.board, "computer-board", false);
         displayAttackResult(row, col, isHit);
         
         if (checkGameOver()) return;
@@ -185,6 +187,10 @@ export const Game = (function () {
   }
 
   function showPassDeviceScreen() {
+    // Immediately hide ships on both boards to prevent seeing opponent's ships
+    UserInterface.renderBoard(player.board, "player-board", false);
+    UserInterface.renderBoard(player2.board, "computer-board", false);
+    
     const passScreen = document.createElement("div");
     passScreen.className = "pass-device-screen";
     
