@@ -61,10 +61,63 @@ export const ShipPlacement = (function() {
   
   function rotateShips() {
     isHorizontal = !isHorizontal;
-    document.querySelectorAll(".ship").forEach(ship => {
-      ship.classList.toggle("horizontal");
-      ship.classList.toggle("vertical");
-    });
+    
+    // If we have the old wrappers for vertical ships, we need to reconstruct
+    // the ship display to remove or add wrappers
+    const shipsContainer = document.querySelector(".ships-container");
+    if (shipsContainer) {
+      // Store current ships data
+      const shipElements = Array.from(document.querySelectorAll(".ship"));
+      const shipData = shipElements.map(ship => ({
+        index: ship.dataset.index,
+        size: ship.dataset.size,
+        isPlaced: ship.classList.contains("placed")
+      }));
+      
+      // Clear container
+      shipsContainer.innerHTML = "";
+      
+      // Recreate ships with new orientation
+      shipData.forEach(data => {
+        const shipElement = document.createElement("div");
+        shipElement.className = `ship size-${data.size} ${isHorizontal ? 'horizontal' : 'vertical'}`;
+        shipElement.dataset.index = data.index;
+        shipElement.dataset.size = data.size;
+        shipElement.draggable = true;
+        
+        // Mark as placed if it was placed before
+        if (data.isPlaced) {
+          shipElement.classList.add("placed");
+        }
+        
+        // Create ship segments
+        for (let i = 0; i < data.size; i++) {
+          const segment = document.createElement("div");
+          segment.className = "ship-segment";
+          shipElement.appendChild(segment);
+        }
+        
+        // Add to container (with wrapper if vertical)
+        if (!isHorizontal) {
+          const wrapper = document.createElement("div");
+          wrapper.style.display = "inline-block";
+          wrapper.style.verticalAlign = "top";
+          wrapper.appendChild(shipElement);
+          shipsContainer.appendChild(wrapper);
+        } else {
+          shipsContainer.appendChild(shipElement);
+        }
+      });
+      
+      // Reattach event listeners
+      setupEventListeners();
+    } else {
+      // Fallback to the simpler toggle if container isn't found
+      document.querySelectorAll(".ship").forEach(ship => {
+        ship.classList.toggle("horizontal");
+        ship.classList.toggle("vertical");
+      });
+    }
 
     // Update rotation indicator
     const indicator = document.querySelector(".orientation-value");
@@ -153,7 +206,16 @@ export const ShipPlacement = (function() {
         shipElement.appendChild(segment);
       }
       
-      shipsContainer.appendChild(shipElement);
+      // Create a wrapper for vertical ships
+      if (!isHorizontal) {
+        const wrapper = document.createElement("div");
+        wrapper.style.display = "inline-block";
+        wrapper.style.verticalAlign = "top";
+        wrapper.appendChild(shipElement);
+        shipsContainer.appendChild(wrapper);
+      } else {
+        shipsContainer.appendChild(shipElement);
+      }
     });
     
     // Create start button

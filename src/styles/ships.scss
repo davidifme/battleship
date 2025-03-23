@@ -19,9 +19,11 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
   gap: 15px;
-  margin-bottom: 20px;
-  width: 100%;
+  margin: 30px 0;
+  max-width: 550px;
+  align-items: flex-start;
 }
 
 .ship {
@@ -39,6 +41,8 @@
   
   &.vertical {
     flex-direction: column;
+    // Better handling for vertical ships
+    margin: 0 auto;
   }
   
   &.dragging {
@@ -64,6 +68,13 @@
   background-color: #6b8bab;
   margin: 2px;
   border-radius: 2px;
+}
+
+// Additional improvements for vertical ships
+.ship.vertical .ship-segment {
+  // This ensures vertical segments align properly
+  margin-right: auto;
+  margin-left: auto;
 }
 
 // New buttons
