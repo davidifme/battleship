@@ -26,11 +26,8 @@ export const ShipPlacement = (function() {
     // Set up event listeners for rotation and drag-drop
     setupEventListeners();
     
-    // Add undo/redo buttons
-    addUndoRedoButtons();
-    
-    // Add auto arrange button
-    addAutoArrangeButton();
+    // The buttons are now created in createPlacementUI
+    // No need to call addUndoRedoButtons or addAutoArrangeButton
   }
   
   function cleanupEvents() {
@@ -60,73 +57,24 @@ export const ShipPlacement = (function() {
   }
   
   function rotateShips() {
+    // Simply toggle the isHorizontal flag
     isHorizontal = !isHorizontal;
     
-    // If we have the old wrappers for vertical ships, we need to reconstruct
-    // the ship display to remove or add wrappers
-    const shipsContainer = document.querySelector(".ships-container");
-    if (shipsContainer) {
-      // Store current ships data
-      const shipElements = Array.from(document.querySelectorAll(".ship"));
-      const shipData = shipElements.map(ship => ({
-        index: ship.dataset.index,
-        size: ship.dataset.size,
-        isPlaced: ship.classList.contains("placed")
-      }));
-      
-      // Clear container
-      shipsContainer.innerHTML = "";
-      
-      // Recreate ships with new orientation
-      shipData.forEach(data => {
-        const shipElement = document.createElement("div");
-        shipElement.className = `ship size-${data.size} ${isHorizontal ? 'horizontal' : 'vertical'}`;
-        shipElement.dataset.index = data.index;
-        shipElement.dataset.size = data.size;
-        shipElement.draggable = true;
-        
-        // Mark as placed if it was placed before
-        if (data.isPlaced) {
-          shipElement.classList.add("placed");
-        }
-        
-        // Create ship segments
-        for (let i = 0; i < data.size; i++) {
-          const segment = document.createElement("div");
-          segment.className = "ship-segment";
-          shipElement.appendChild(segment);
-        }
-        
-        // Add to container (with wrapper if vertical)
-        if (!isHorizontal) {
-          const wrapper = document.createElement("div");
-          wrapper.style.display = "inline-block";
-          wrapper.style.verticalAlign = "top";
-          wrapper.appendChild(shipElement);
-          shipsContainer.appendChild(wrapper);
-        } else {
-          shipsContainer.appendChild(shipElement);
-        }
-      });
-      
-      // Reattach event listeners
-      setupEventListeners();
-    } else {
-      // Fallback to the simpler toggle if container isn't found
-      document.querySelectorAll(".ship").forEach(ship => {
-        ship.classList.toggle("horizontal");
-        ship.classList.toggle("vertical");
-      });
-    }
+    // Update all ships to have the correct orientation class
+    const ships = document.querySelectorAll(".ship");
+    ships.forEach(ship => {
+        // Remove both classes first
+        ship.classList.remove("horizontal");
+        ship.classList.remove("vertical");
+        // Add the appropriate class based on current orientation
+        ship.classList.add(isHorizontal ? "horizontal" : "vertical");
+    });
 
     // Update rotation indicator
     const indicator = document.querySelector(".orientation-value");
     if (indicator) {
-      indicator.textContent = isHorizontal ? 'Horizontal' : 'Vertical';
+        indicator.textContent = isHorizontal ? 'Horizontal' : 'Vertical';
     }
-
-    // Update visual feedback for dragging
-    updateRotationVisualFeedback();
   }
 
   function updateRotationVisualFeedback() {
@@ -177,19 +125,10 @@ export const ShipPlacement = (function() {
     `;
     instructions.appendChild(rotationIndicator);
     
-    // Create ships container first
+    // Create ships container
     const shipsContainer = document.createElement("div");
     shipsContainer.className = "ships-container";
-    
-    // Add rotation button
-    const rotateButton = document.createElement("button");
-    rotateButton.className = "rotate-button";
-    rotateButton.textContent = "Rotate Ships";
-    rotateButton.addEventListener("click", rotateShips);
-    placementContainer.appendChild(rotateButton);
-    
-    // Now append the ships container after the rotate button
-    placementContainer.appendChild(shipsContainer);
+    placementContainer.appendChild(shipsContainer);1
     
     // Create ship elements
     shipSizes.forEach((size, index) => {
@@ -209,6 +148,7 @@ export const ShipPlacement = (function() {
       // Create a wrapper for vertical ships
       if (!isHorizontal) {
         const wrapper = document.createElement("div");
+        wrapper.className = "ship-wrapper";
         wrapper.style.display = "inline-block";
         wrapper.style.verticalAlign = "top";
         wrapper.appendChild(shipElement);
@@ -218,12 +158,51 @@ export const ShipPlacement = (function() {
       }
     });
     
-    // Create start button
+    // Create a buttons container for all controls
+    const buttonsContainer = document.createElement("div");
+    buttonsContainer.className = "placement-buttons-container";
+    placementContainer.appendChild(buttonsContainer);
+    
+    // Add rotate button to the buttons container
+    const rotateButton = document.createElement("button");
+    rotateButton.className = "rotate-button";
+    rotateButton.textContent = "Rotate Ships";
+    rotateButton.addEventListener("click", rotateShips);
+    buttonsContainer.appendChild(rotateButton);
+    
+    // Add auto arrange button to the buttons container
+    const autoArrangeButton = document.createElement("button");
+    autoArrangeButton.className = "auto-arrange-button";
+    autoArrangeButton.textContent = "Auto Arrange";
+    autoArrangeButton.addEventListener("click", autoArrangeShips);
+    buttonsContainer.appendChild(autoArrangeButton);
+    
+    // Add undo/redo buttons to the buttons container
+    const undoRedoContainer = document.createElement("div");
+    undoRedoContainer.className = "undo-redo-container";
+    
+    const undoButton = document.createElement("button");
+    undoButton.className = "undo-button";
+    undoButton.textContent = "Undo";
+    undoButton.disabled = true;
+    undoButton.addEventListener("click", undo);
+    
+    const redoButton = document.createElement("button");
+    redoButton.className = "redo-button";
+    redoButton.textContent = "Redo";
+    redoButton.disabled = true;
+    redoButton.addEventListener("click", redo);
+    
+    undoRedoContainer.appendChild(undoButton);
+    undoRedoContainer.appendChild(redoButton);
+    buttonsContainer.appendChild(undoRedoContainer);
+    
+    // Create start button and add to buttons container
     const startButton = document.createElement("button");
     startButton.className = "start-game";
     startButton.textContent = "Start Game";
     startButton.disabled = true;
-    placementContainer.appendChild(startButton);
+    buttonsContainer.appendChild(startButton);
     
     startButton.addEventListener("click", function() {
       if (pendingPlacements.length === shipSizes.length) {
@@ -624,33 +603,6 @@ export const ShipPlacement = (function() {
     updateStartButton();
   }
 
-  function addUndoRedoButtons() {
-    const placementContainer = document.querySelector(".ship-placement-container");
-    if (!placementContainer) return;
-    
-    const buttonContainer = document.createElement("div");
-    buttonContainer.className = "undo-redo-container";
-    
-    const undoButton = document.createElement("button");
-    undoButton.className = "undo-button";
-    undoButton.textContent = "Undo";
-    undoButton.disabled = true;
-    undoButton.addEventListener("click", undo);
-    
-    const redoButton = document.createElement("button");
-    redoButton.className = "redo-button";
-    redoButton.textContent = "Redo";
-    redoButton.disabled = true;
-    redoButton.addEventListener("click", redo);
-    
-    buttonContainer.appendChild(undoButton);
-    buttonContainer.appendChild(redoButton);
-    
-    // Insert before the start button
-    const startButton = placementContainer.querySelector(".start-game");
-    placementContainer.insertBefore(buttonContainer, startButton);
-  }
-
   function undo() {
     if (historyIndex > 0) {
       historyIndex--;
@@ -699,25 +651,6 @@ export const ShipPlacement = (function() {
         shipElement.classList.add("placed");
       }
     });
-  }
-
-  function addAutoArrangeButton() {
-    const placementContainer = document.querySelector(".ship-placement-container");
-    if (!placementContainer) return;
-    
-    const autoArrangeButton = document.createElement("button");
-    autoArrangeButton.className = "auto-arrange-button";
-    autoArrangeButton.textContent = "Auto Arrange";
-    autoArrangeButton.addEventListener("click", autoArrangeShips);
-    
-    // Insert before the undo/redo buttons
-    const undoRedoContainer = placementContainer.querySelector(".undo-redo-container");
-    if (undoRedoContainer) {
-      placementContainer.insertBefore(autoArrangeButton, undoRedoContainer);
-    } else {
-      const startButton = placementContainer.querySelector(".start-game");
-      placementContainer.insertBefore(autoArrangeButton, startButton);
-    }
   }
 
   function autoArrangeShips() {

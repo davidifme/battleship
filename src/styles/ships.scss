@@ -77,54 +77,6 @@
   margin-left: auto;
 }
 
-// New buttons
-.undo-redo-container, .auto-arrange-button {
-  margin: 10px 0;
-}
-
-.undo-redo-container {
-  display: flex;
-  gap: 10px;
-}
-
-.start-game, .auto-arrange-button, .undo-button, .redo-button {
-  padding: 8px 15px;
-  border-radius: 4px;
-  font-size: 14px;
-  transition: all 0.2s ease;
-}
-
-.auto-arrange-button {
-  background-color: #3498db;
-  
-  &:hover:not(:disabled) {
-    background-color: #2980b9;
-  }
-}
-
-.undo-button, .redo-button {
-  background-color: #7f8c8d;
-  
-  &:hover:not(:disabled) {
-    background-color: #95a5a6;
-  }
-}
-
-.start-game {
-  margin-top: 15px;
-  padding: 10px 25px;
-  font-size: 16px;
-  background-color: #27ae60;
-  
-  &:hover:not(:disabled) {
-    background-color: #2ecc71;
-  }
-  
-  &:disabled {
-    background-color: #95a5a6;
-  }
-}
-
 // Enhanced grid cell styles
 .grid-cell {
   &.highlight {
@@ -161,21 +113,6 @@
   }
 }
 
-.rotate-button {
-  margin: 10px 0;
-  padding: 8px 15px;
-  background-color: #3498db;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-
-  &:hover {
-    background-color: #2980b9;
-  }
-}
-
 .rotation-indicator {
   margin-top: 10px;
   padding: 5px;
@@ -184,5 +121,63 @@
 
   .orientation-value {
     font-weight: bold;
+  }
+}
+
+.placement-buttons-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  margin: 20px 0;
+  width: 100%;
+  max-width: 550px;
+}
+
+.undo-redo-container {
+  display: flex;
+  gap: 10px;
+}
+
+// Consolidated button styles
+.start-game, .auto-arrange-button, .undo-button, .redo-button, .rotate-button {
+  padding: 8px 15px;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  color: white;
+  
+  &:disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
+  }
+}
+
+.auto-arrange-button, .rotate-button {
+  background-color: #3498db;
+  
+  &:hover:not(:disabled) {
+    background-color: #2980b9;
+  }
+}
+
+.undo-button, .redo-button {
+  background-color: #7f8c8d;
+  
+  &:hover:not(:disabled) {
+    background-color: #95a5a6;
+  }
+}
+
+.start-game {
+  padding: 10px 25px;
+  font-size: 16px;
+  background-color: #27ae60;
+  // Remove margin-left: auto to center it
+  
+  &:hover:not(:disabled) {
+    background-color: #2ecc71;
   }
 }
