@@ -6,7 +6,8 @@ import { ShipPlacement } from "./ShipPlacement";
 
 export const Game = (function () {
   let player, computer, player2, gameState, currentTurn, gameMode;
-  const SHIP_SIZES = [5, 4, 3, 3, 2, 1, 1];
+  // const SHIP_SIZES = [5, 4, 3, 3, 2, 1, 1];
+  const SHIP_SIZES = [6];
 
   function init(mode = "singleplayer") {
     gameMode = mode;
@@ -312,8 +313,26 @@ export const Game = (function () {
   function announceWinner(winner) {
     const announcement = document.createElement("div");
     announcement.className = "winner-announcement";
-    announcement.textContent = `${winner} wins!`;
-
+    
+    const winnerContent = document.createElement("div");
+    winnerContent.className = "winner-content";
+    
+    // Add confetti elements
+    for (let i = 0; i < 30; i++) {
+      const confetti = document.createElement("div");
+      confetti.className = "confetti";
+      confetti.style.left = `${Math.random() * 100}%`;
+      confetti.style.animationDelay = `${Math.random() * 3}s`;
+      confetti.style.animationDuration = `${2 + Math.random() * 2}s`;
+      winnerContent.appendChild(confetti);
+    }
+    
+    const heading = document.createElement("h2");
+    heading.textContent = `${winner} wins!`;
+    
+    const subtext = document.createElement("p");
+    subtext.textContent = "Congratulations on your victory at sea!";
+    
     const resetButton = document.createElement("button");
     resetButton.textContent = "Play Again";
     resetButton.addEventListener("click", () => {
@@ -321,7 +340,11 @@ export const Game = (function () {
       cleanReset();
     });
 
-    announcement.appendChild(resetButton);
+    winnerContent.appendChild(heading);
+    winnerContent.appendChild(subtext);
+    winnerContent.appendChild(resetButton);
+    announcement.appendChild(winnerContent);
+    
     document.body.appendChild(announcement);
   }
 
