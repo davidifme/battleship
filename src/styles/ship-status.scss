@@ -48,20 +48,38 @@
           }
         }
       }
-    }
-    
-    .ship-status-icon {
-      display: flex;
-      justify-content: flex-start;
       
-      .ship-segment {
-        width: 18px;
-        height: 18px;
-        background-color: #6b8bab;
-        margin: 1px;
-        border-radius: 2px;
+      .ship-status-icon {
+        display: flex;
+        justify-content: flex-start;
+        
+        .ship-segment {
+          width: 18px;
+          height: 18px;
+          background-color: #6b8bab;
+          margin: 1px;
+          border-radius: 2px;
+          transition: background-color 0.3s ease;
+          
+          &.hit {
+            background-color: #e74c3c;
+          }
+        }
       }
     }
+}
+
+.ship-status-icon {
+  display: flex;
+  justify-content: flex-start;
+  
+  .ship-segment {
+    width: 18px;
+    height: 18px;
+    background-color: #6b8bab;
+    margin: 1px;
+    border-radius: 2px;
+  }
 }
 
 // Media query for smaller screens

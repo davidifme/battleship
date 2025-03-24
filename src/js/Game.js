@@ -149,7 +149,15 @@ export const Game = (function () {
       const attackResult = player.attack(computer.board, row, col);
       if (attackResult) {
         const isHit = computer.board[row][col] === "hit";
+        
+        // Update UI
         updateUI();
+        
+        // Update ship status specifically after a hit
+        if (isHit) {
+          ShipStatus.updateShipStatus("computer-status", computer.board);
+        }
+        
         displayAttackResult(row, col, isHit);
         
         if (checkGameOver()) return;
@@ -168,6 +176,12 @@ export const Game = (function () {
         const isHit = player2.board[row][col] === "hit";
         // Only show hits/misses, not ships
         UserInterface.renderBoard(player2.board, "computer-board", false);
+        
+        // Update ship status specifically after a hit
+        if (isHit) {
+          ShipStatus.updateShipStatus("computer-status", player2.board);
+        }
+        
         displayAttackResult(row, col, isHit);
         
         if (checkGameOver()) return;
@@ -189,6 +203,12 @@ export const Game = (function () {
         const isHit = player.board[row][col] === "hit";
         // Only show hits/misses, not ships
         UserInterface.renderBoard(player.board, "computer-board", false);
+        
+        // Update ship status specifically after a hit
+        if (isHit) {
+          ShipStatus.updateShipStatus("computer-status", player.board);
+        }
+        
         displayAttackResult(row, col, isHit);
         
         if (checkGameOver()) return;
@@ -265,8 +285,6 @@ export const Game = (function () {
     const attackResult = computer.attack(player.board);
     if (!attackResult) return; // Attack failed for some reason
     
-    updateUI();
-    
     // Use the coordinates that were actually used in the attack
     // computer.lastAttack is set in computerAttack function in Player.js
     const row = computer.lastAttack.row;
@@ -274,6 +292,15 @@ export const Game = (function () {
     
     // Add visual feedback for computer's attack
     const isHit = player.board[row][col] === "hit";
+    
+    // Update UI
+    updateUI();
+    
+    // Update ship status specifically after a hit
+    if (isHit) {
+      ShipStatus.updateShipStatus("player-status", player.board);
+    }
+    
     displayAttackResult(row, col, isHit);
     
     if (checkGameOver()) return;
