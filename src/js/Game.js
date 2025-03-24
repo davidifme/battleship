@@ -261,6 +261,12 @@ export const Game = (function () {
         UserInterface.renderBoard(player.board, "player-board", true);  // Show own ships
         UserInterface.renderBoard(player2.board, "computer-board", false);  // Hide opponent ships
         
+        // Recreate and update ship status displays
+        ShipStatus.createShipStatusDisplay("player-status", SHIP_SIZES);
+        ShipStatus.createShipStatusDisplay("computer-status", SHIP_SIZES);
+        ShipStatus.updateShipStatus("player-status", player.board);
+        ShipStatus.updateShipStatus("computer-status", player2.board);
+        
         // Update board labels
         document.querySelector(".board-container:first-child h2").textContent = "Your Fleet";
         document.querySelector(".board-container:last-child h2").textContent = "Opponent's Fleet";
@@ -268,6 +274,12 @@ export const Game = (function () {
         // Player 2's turn - show player 1's board for attacking
         UserInterface.renderBoard(player2.board, "player-board", true);  // Show own ships
         UserInterface.renderBoard(player.board, "computer-board", false);  // Hide opponent ships
+        
+        // Recreate and update ship status displays
+        ShipStatus.createShipStatusDisplay("player-status", SHIP_SIZES);
+        ShipStatus.createShipStatusDisplay("computer-status", SHIP_SIZES);
+        ShipStatus.updateShipStatus("player-status", player2.board);
+        ShipStatus.updateShipStatus("computer-status", player.board);
         
         // Update board labels
         document.querySelector(".board-container:first-child h2").textContent = "Your Fleet";
